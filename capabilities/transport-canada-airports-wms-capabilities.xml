@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<WMS_Capabilities version="1.3.0"
+  xmlns="http://www.opengis.net/wms"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:esri_wms="http://www.esri.com/wms"
+  xsi:schemaLocation="http://www.opengis.net/wms http://schemas.opengis.net/wms/1.3.0/capabilities_1_3_0.xsd http://www.esri.com/wms https://maps-cartes.services.geo.ca:443/server_serveur/services/TC/canadian_airports_w_air_navigation_services_en/MapServer/WmsServer?version=1.3.0%26service=WMS%26request=GetSchemaExtension">
+  <Service>
+    <Name><![CDATA[WMS]]></Name>
+    <Title><![CDATA[Canadian Airports with Air Navigation Services]]></Title>
+    <Abstract><![CDATA[Canadian airports served by NAV CANADA control towers or flight service station.
+]]></Abstract>
+    <KeywordList><Keyword><![CDATA[Airports,Air transport,Geographic data,Aviation,Canada,Air Navigation]]></Keyword></KeywordList>
+    <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:type="simple" xlink:href="https://maps-cartes.services.geo.ca:443/server_serveur/services/TC/canadian_airports_w_air_navigation_services_en/MapServer/WmsServer?"/>
+    <ContactInformation>
+      <ContactPersonPrimary>
+        <ContactPerson><![CDATA[]]></ContactPerson>
+        <ContactOrganization><![CDATA[Government of Canada; Natural Resources Canada]]></ContactOrganization>
+      </ContactPersonPrimary>
+      <ContactPosition><![CDATA[]]></ContactPosition>
+      <ContactAddress>
+        <AddressType><![CDATA[]]></AddressType>
+        <Address><![CDATA[]]></Address>
+        <City><![CDATA[]]></City>
+        <StateOrProvince><![CDATA[]]></StateOrProvince>
+        <PostCode><![CDATA[]]></PostCode>
+        <Country><![CDATA[]]></Country>
+      </ContactAddress>
+      <ContactVoiceTelephone><![CDATA[1 (800) 661 2638]]></ContactVoiceTelephone>
+      <ContactFacsimileTelephone><![CDATA[]]></ContactFacsimileTelephone>
+      <ContactElectronicMailAddress><![CDATA[fgp-pgf@nrcan-rncan.gc.ca]]></ContactElectronicMailAddress>
+    </ContactInformation>
+    <Fees><![CDATA[]]></Fees>
+    <AccessConstraints><![CDATA[Open Government Licence - Canada (https://open.canada.ca/en/open-government-licence-canada)]]></AccessConstraints>
+    <MaxWidth>4096</MaxWidth>
+    <MaxHeight>4096</MaxHeight>
+  </Service>
+  <Capability>
+    <Request>
+      <GetCapabilities>
+        <Format>application/vnd.ogc.wms_xml</Format>
+        <Format>text/xml</Format>
+        <DCPType>
+          <HTTP><Get><OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:type="simple" xlink:href="https://maps-cartes.services.geo.ca:443/server_serveur/services/TC/canadian_airports_w_air_navigation_services_en/MapServer/WmsServer?"/></Get></HTTP>
+        </DCPType>
+      </GetCapabilities>
+      <GetMap>
+        <Format>image/bmp</Format>
+        <Format>image/jpeg</Format>
+        <Format>image/tiff</Format>
+        <Format>image/png</Format>
+        <Format>image/png8</Format>
+        <Format>image/png24</Format>
+        <Format>image/png32</Format>
+        <Format>image/gif</Format>
+        <Format>image/svg+xml</Format>
+        <DCPType>
+          <HTTP><Get><OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:type="simple" xlink:href="https://maps-cartes.services.geo.ca:443/server_serveur/services/TC/canadian_airports_w_air_navigation_services_en/MapServer/WmsServer?"/></Get></HTTP>
+        </DCPType>
+      </GetMap>
+      <GetFeatureInfo>
+        <Format>application/vnd.esri.wms_raw_xml</Format>
+        <Format>application/vnd.esri.wms_featureinfo_xml</Format>
+        <Format>application/vnd.ogc.wms_xml</Format>
+        <Format>application/geojson</Format>
+        <Format>text/xml</Format>
+        <Format>text/html</Format>
+        <Format>text/plain</Format>
+        <DCPType>
+          <HTTP><Get><OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:type="simple" xlink:href="https://maps-cartes.services.geo.ca:443/server_serveur/services/TC/canadian_airports_w_air_navigation_services_en/MapServer/WmsServer?"/></Get></HTTP>
+        </DCPType>
+      </GetFeatureInfo>
+      <esri_wms:GetStyles>
+        <Format>application/vnd.ogc.sld+xml</Format>
+        <DCPType>
+          <HTTP><Get><OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:type="simple" xlink:href="https://maps-cartes.services.geo.ca:443/server_serveur/services/TC/canadian_airports_w_air_navigation_services_en/MapServer/WmsServer?"/></Get></HTTP>
+        </DCPType>
+      </esri_wms:GetStyles>
+    </Request>
+    <Exception>
+      <Format>application/vnd.ogc.se_xml</Format>
+      <Format>application/vnd.ogc.se_inimage</Format>
+      <Format>application/vnd.ogc.se_blank</Format>
+      <Format>text/xml</Format>
+      <Format>XML</Format>
+    </Exception>
+    <Layer>
+      <Title><![CDATA[Canadian Airports with Air Navigation Services]]></Title>
+<CRS>CRS:84</CRS>
+<CRS>EPSG:4326</CRS>
+<CRS>EPSG:3978</CRS>
+<EX_GeographicBoundingBox><westBoundLongitude>-146.108062</westBoundLongitude><eastBoundLongitude>-34.279553</eastBoundLongitude><southBoundLatitude>36.481069</southBoundLatitude><northBoundLatitude>72.461364</northBoundLatitude></EX_GeographicBoundingBox>
+<BoundingBox CRS="CRS:84" minx="-146.108062" miny="36.481069" maxx="-34.279553" maxy="72.461364"/>
+<BoundingBox CRS="EPSG:4326" minx="36.481069" miny="-146.108062" maxx="72.461364" maxy="-34.279553"/>
+<BoundingBox CRS="EPSG:3978" minx="-2176505.126100" miny="-662912.157600" maxx="2964218.876900" maxy="2555109.845500"/>
+      <Layer queryable="1">
+        <Name>0</Name>
+        <Title><![CDATA[Canadian Airports with Air Navigation Services]]></Title>
+        <Abstract><![CDATA[Canadian airports served by NAV CANADA control towers or flight service station.
+]]></Abstract>
+<CRS>CRS:84</CRS>
+<CRS>EPSG:4326</CRS>
+<CRS>EPSG:3978</CRS>
+<EX_GeographicBoundingBox><westBoundLongitude>-146.108062</westBoundLongitude><eastBoundLongitude>-34.279553</eastBoundLongitude><southBoundLatitude>36.481069</southBoundLatitude><northBoundLatitude>72.461364</northBoundLatitude></EX_GeographicBoundingBox>
+<BoundingBox CRS="CRS:84" minx="-146.108062" miny="36.481069" maxx="-34.279553" maxy="72.461364"/>
+<BoundingBox CRS="EPSG:4326" minx="36.481069" miny="-146.108062" maxx="72.461364" maxy="-34.279553"/>
+<BoundingBox CRS="EPSG:3978" minx="-2176505.126100" miny="-662912.157600" maxx="2964218.876900" maxy="2555109.845500"/>
+        <Style>
+          <Name>default</Name>
+          <Title><![CDATA[Canadian Airports with Air Navigation Services]]></Title>
+          <LegendURL width="300" height="104">
+            <Format>image/png</Format>
+            <OnlineResource xlink:href="https://maps-cartes.services.geo.ca:443/server_serveur/services/TC/canadian_airports_w_air_navigation_services_en/MapServer/WmsServer?request=GetLegendGraphic%26version=1.3.0%26format=image/png%26layer=0" xlink:type="simple" xmlns:xlink="http://www.w3.org/1999/xlink" />
+          </LegendURL>
+        </Style>
+      </Layer>
+    </Layer>
+  </Capability>
+</WMS_Capabilities>

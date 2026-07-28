@@ -1,0 +1,383 @@
+aid: transport-canada
+name: Transport Canada
+review:
+  question: >-
+    Does Transport Canada publish a public developer portal and machine-readable API
+    contracts, and what would it cost a consumer of its data to leave?
+  answer: partial
+  date: '2026-07-28'
+  reviewer: API Evangelist
+  tier: regulator
+  homeMarket: Canada
+  primaryDomain: tc.canada.ca
+findings:
+  summary: >-
+    Transport Canada has no developer portal, no OpenAPI, and no API key. It also has
+    no meaningful lock-in. Three real, ungated machine-readable endpoints were confirmed
+    live: a self-describing JSON/XML Vehicle Recalls Database API at data.tc.gc.ca,
+    an Esri ArcGIS REST MapServer for Canadian airports with air navigation services,
+    and an OGC WMS 1.3.0 service over the same layer. Everything else — CADORS civil
+    aviation occurrences, the Air Cargo Security members list, the large-vessel and
+    small-commercial-vessel registers, the National Collision Database — is published
+    as bulk CSV/XML on opendatatc.tc.canada.ca and indexed through the Treasury Board
+    Secretariat's CKAN Action API on open.canada.ca (49 datasets under org id "tc").
+    The Canadian Civil Aircraft Register (CCARCS) is the one notable gap: a web search
+    form capped at 1000 records with no API and no bulk download. Transport Canada is
+    not part of the airline distribution chain at all; economic licensing of air
+    carriers, all-in fare advertising and the Air Passenger Protection Regulations sit
+    with the separate Canadian Transportation Agency.
+  developerPortal:
+    exists: false
+    note: >-
+      No portal at tc.canada.ca. Probed and recorded below. The Government of Canada
+      API Store referenced by the tc-ca GitHub repo "API-Store-Policy-Scripts" no
+      longer resolves (api.canada.ca returns no DNS answer).
+  githubOrganization:
+    url: https://github.com/tc-ca
+    publicRepos: 69
+    openapiFound: false
+    note: >-
+      GitHub code search across org:tc-ca for filename:openapi and filename:swagger
+      both returned total_count 0 on 2026-07-28. Repos are internal line-of-business
+      .NET/Angular projects (Seafarer Certification API, TSIS, PACE), not published
+      API contracts.
+probes:
+  - url: https://tc.canada.ca/en
+    status: 200
+    note: Department homepage.
+  - url: https://tc.canada.ca/en/aviation
+    status: 200
+    note: Civil Aviation landing page. No developer or API links; no passenger-rights
+      or fare-advertising content.
+  - url: https://developer.tc.canada.ca
+    status: 000
+    note: DNS does not resolve.
+  - url: https://developers.tc.canada.ca
+    status: 000
+    note: DNS does not resolve.
+  - url: https://docs.tc.canada.ca
+    status: 000
+    note: DNS does not resolve.
+  - url: https://api.tc.canada.ca
+    status: 404
+  - url: https://tc.canada.ca/en/developers
+    status: 404
+  - url: https://tc.canada.ca/en/api
+    status: 404
+  - url: https://tc.canada.ca/en/docs
+    status: 404
+  - url: https://tc.canada.ca/openapi.json
+    status: 404
+  - url: https://tc.canada.ca/en/openapi.json
+    status: 404
+  - url: https://tc.canada.ca/.well-known/security.txt
+    status: 404
+  - url: https://api.canada.ca
+    status: 000
+    note: Government of Canada API Store — DNS does not resolve.
+  - url: https://data.tc.gc.ca/v1.3/api/eng/vehicle-recall-database/?format=json
+    status: 200
+    note: Self-describing application root. Returns Tables[] = recall, recall-summary
+      with bilingual parameter acronyms. Saved verbatim to capabilities/.
+  - url: https://data.tc.gc.ca/v1.3/api/eng/vehicle-recall-database/recall?format=json
+    status: 200
+    note: Table root returns its own parameter list (recall-number, make-name,
+      manufacturer-name, minimum-model-year, maximum-model-year, year-range,
+      model-name).
+  - url: https://data.tc.gc.ca/v1.3/api/eng/vehicle-recall-database/recall/recall-number/2024001?format=json
+    status: 200
+    note: Returned a real record (manufacturer CAKE). 2,775 bytes.
+  - url: https://data.tc.gc.ca/v1.3/api/eng/vehicle-recall-database/recall/make-name/HONDA?format=json
+    status: 200
+    note: Returned 11,632 bytes of recall records.
+  - url: https://data.tc.gc.ca/v1.3/api/eng/vehicle-recall-database/recall-summary/recall-number/2024001?format=json
+    status: 200
+  - url: https://data.tc.gc.ca/v1.3/api/eng/vehicle-recall-database/recall/make-name?format=json
+    status: 400
+    note: '{"Message":"The request is invalid."} — parameter requires a value segment.'
+  - url: https://data.tc.gc.ca/v1.3/api/fra/vehicle-recall-database/recall?format=json
+    status: 200
+    note: French service tree mirrors the English one.
+  - url: https://data.tc.gc.ca/v1.3/api/eng/national-collision-database/?format=json
+    status: 404
+    note: '"The application requested does not exist" — vehicle-recall-database is the
+      only application on this API host.'
+  - url: https://maps-cartes.services.geo.ca/server_serveur/rest/services/TC/canadian_airports_w_air_navigation_services_en/MapServer?f=json
+    status: 200
+    note: ArcGIS REST MapServer, currentVersion 10.81, one layer. Saved verbatim to
+      capabilities/.
+  - url: https://maps-cartes.services.geo.ca/server_serveur/rest/services/TC/canadian_airports_w_air_navigation_services_en/MapServer/0/query
+    status: 200
+    note: Live query returned features with TC_ID, IATA, ICAO, TYPE, AIRPORT, CITY,
+      PROVINCE, LATTITUDE, LONGITUDE.
+  - url: https://maps-cartes.services.geo.ca/server_serveur/services/TC/canadian_airports_w_air_navigation_services_en/MapServer/WMSServer?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetCapabilities
+    status: 200
+    note: Valid WMS_Capabilities 1.3.0 document, 7,011 bytes. Saved verbatim to
+      capabilities/.
+  - url: https://open.canada.ca/data/en/api/3/action/organization_show?id=tc
+    status: 200
+    note: 'Transport Canada | Transports Canada, org id
+      AEAE485F-42DE-4D33-AFA3-F8A3A76FC663, package_count 49.'
+  - url: https://open.canada.ca/en/access-our-application-programming-interface-api
+    status: 200
+    note: CKAN Action API documentation. GET only, no key, no published rate limit.
+      Operated by Treasury Board Secretariat, not Transport Canada.
+  - url: https://opendatatc.tc.canada.ca/CADORS_Occurrence_Information.csv
+    status: 200
+    note: Bulk CADORS extract. Header includes cadorsnumber, aerodromeid (ICAO),
+      tsboccurrencenumber.
+  - url: https://opendatatc.tc.canada.ca/vrdb_full_monthly.csv
+    status: 200
+  - url: https://wwwapps.tc.gc.ca/saf-sec-sur/2/ccarcs-riacc/RchSimp.aspx
+    status: 200
+    note: Canadian Civil Aircraft Register search form. No API, no bulk download,
+      1000-record result cap.
+  - url: https://wwwapps.tc.gc.ca/Saf-Sec-Sur/2/CCARCS-RIACC/CCARCSDownload.aspx
+    status: 200
+    note: HTTP 200 but the body is the "page has either moved or does not exist"
+      error page. There is no CCARCS bulk download.
+  - url: https://wwwapps.tc.gc.ca/saf-sec-sur/2/cadors-screaq/
+    status: 200
+    note: CADORS web search application. No API surface.
+  - url: https://wwwapps.tc.gc.ca/Saf-Sec-Sur/7/VRDB-BDRV/search-recherche/menu.aspx
+    status: 200
+    note: Road Safety Recalls Database web UI, the human front end for the recalls API.
+  - url: https://drone-drone.tc.canada.ca/
+    status: 000
+    note: DNS does not resolve. The Drone Management Portal is reached from
+      tc.canada.ca/en/aviation/drone-safety/drone-management-portal (200) and is an
+      authenticated account service with no public API.
+  - url: https://open.canada.ca/en/open-government-licence-canada
+    status: 200
+    note: Open Government Licence - Canada. The operative terms for all of the above.
+switchingCost:
+  interfaceShape:
+    value: standard-plus-proprietary
+    standardsNamed:
+      - OGC WMS 1.3.0 (Canadian Airports GetCapabilities validates against
+        capabilities_1_3_0.xsd)
+      - CKAN Action API 2.8 (open.canada.ca portal indexing Transport Canada's 49
+        datasets; documented against docs.ckan.org/en/2.8/api)
+      - Esri ArcGIS REST Services 10.81 (de facto industry interface, not an open
+        standard, but implemented by many servers and consumable by any Esri or
+        GDAL/OGR client)
+      - Open Government Licence - Canada (data licence, not an interface)
+    proprietaryElements:
+      - The Vehicle Recalls Database API at data.tc.gc.ca/v1.3 is a Transport
+        Canada-specific shape. Path-segment parameters, a bespoke self-describing
+        root returning Tables[]/Parameters[], and a response envelope of
+        ResultSet[[{Name, Value:{Type:"System.String", Literal}}]] that leaks .NET
+        type names into the payload. No OpenAPI, no JSON Schema, no hypermedia
+        standard. It is documented only by a DOCX API guide attached to the
+        open.canada.ca dataset record.
+    note: >-
+      No OpenAPI, Swagger, AsyncAPI, GraphQL schema or .well-known descriptor is
+      published anywhere on tc.canada.ca, data.tc.gc.ca, or github.com/tc-ca. The
+      machine-readable contracts that do exist are a WMS capabilities document, an
+      ArcGIS service descriptor, and the recalls API's own self-describing root — all
+      three harvested verbatim into capabilities/.
+  secondSource:
+    value: no-alternative
+    alternativesConsidered:
+      - >-
+        FAA (US) and EASA publish equivalent-shape aviation safety and registry data
+        for their own jurisdictions, but not for Canadian aircraft, Canadian
+        aerodromes or Canadian occurrences. They are not substitutes.
+      - >-
+        NAV CANADA is the Canadian air navigation service provider and publishes
+        aeronautical information (CFS, NOTAM, AWWS) that overlaps on aerodrome
+        reference data, but it is a different organisation with different data and its
+        own terms; it does not republish CADORS or CCARCS.
+      - >-
+        The Transportation Safety Board of Canada publishes accident and incident
+        investigation data that cross-references CADORS via tsboccurrencenumber, but
+        it covers only investigated occurrences, a small subset of CADORS.
+      - >-
+        Commercial aviation data aggregators (FlightAware, Cirium, OAG, ADS-B
+        Exchange) sell schedule, movement and fleet data. None are a source for the
+        Canadian civil aircraft register of record or for Transport Canada regulatory
+        registries.
+      - >-
+        Statistics Canada publishes air transport statistics, not registry or
+        occurrence records.
+    note: >-
+      For anything that is a Canadian regulatory record — the civil aircraft register,
+      CADORS occurrences, air operator certificates, Air Cargo Security membership,
+      National Safety Mark registrations, vehicle recall notices — Transport Canada is
+      the only source, by statute. There is no second source and there cannot be one.
+      This is the finding, not a gap.
+  exitPath:
+    value: bulk-export-documented
+    operationsCited:
+      - https://opendatatc.tc.canada.ca/vrdb_full_monthly.csv (full Vehicle Recalls
+        Database, monthly, CSV)
+      - https://opendatatc.tc.canada.ca/vrdb_full_monthly.xml (same, XML)
+      - https://opendatatc.tc.canada.ca/CADORS_Occurrence_Information.csv (plus four
+        sibling CADORS extracts — Occurrence Category, Occurrence Event Information,
+        Aircraft Information, Aircraft Event Information)
+      - https://ftp.cartes.canada.ca/pub/tc_tc/Airports_Aeroport/canadian_airports_w_air_navigation_services/Airports_Aeroports.csv
+        (Canadian airports, plus SHP and FGDB variants, EN and FR)
+      - https://opendatatc.tc.canada.ca/TC_ACS_Members_List_EN.csv (Air Cargo Security
+        members)
+      - >-
+        The ArcGIS REST /query operation accepts where=1%3D1&outFields=*&f=json and
+        pages results (exceededTransferLimit is returned in the response), which is a
+        working full-extract path for the airports layer.
+    exceptions:
+      - >-
+        The Canadian Civil Aircraft Register (CCARCS) has NO export. The search form
+        caps results at 1000 records and CCARCSDownload.aspx serves an error page.
+        This is the single largest data-access gap in Transport Canada's aviation
+        surface.
+    note: >-
+      Every published dataset carries a bulk file and a data dictionary. There is no
+      customer account, so there is no personal data to port and GDPR-style
+      portability is not the relevant frame; the relevant frame is whether the
+      reference data can be taken wholesale, and for everything except CCARCS it can.
+  identifierPortability:
+    value: >-
+      Shared industry identifiers throughout the aviation data — no vendor-opaque keys
+      of consequence.
+    identifiersFound:
+      - IATA three-letter airport codes (field IATA, e.g. YXY, YYJ) in the Canadian
+        Airports layer
+      - ICAO four-letter aerodrome codes (field ICAO_OACI / ICAO, e.g. CYXY, CYYJ; and
+        CADORS field aerodromeid, e.g. CYFB, CYGW, CYQB)
+      - Aircraft registration marks in CADORS Aircraft Information — Canadian marks
+        stored without the C- prefix (GJZT = C-GJZT) and foreign marks in full
+        (N6409H)
+      - Airline flight numbers with ICAO operator designator prefix (JZA3601 =
+        Jazz Aviation)
+      - TSB occurrence numbers (tsboccurrencenumber) cross-referencing the
+        Transportation Safety Board of Canada
+      - CADORS occurrence numbers (cadorsnumber, e.g. 2004C2314) — Transport
+        Canada-scoped but published and stable
+      - Transport Canada recall numbers (e.g. 2024001) and manufacturer recall numbers
+        (MANUFACTURER_RECALL_NO_TXT) in the recalls API
+      - TC_ID and OBJECTID in the airports layer — internal, but redundant to the
+        IATA/ICAO codes on the same record
+    note: >-
+      No PNR record locators, no GDS record IDs, no IATA/ARC agency numbers, no hotel
+      chain or GIATA codes — Transport Canada holds no booking or distribution data.
+      What it does hold hangs on ICAO and IATA codes and on registration marks, which
+      is exactly the portable case.
+  contractualLockIn:
+    value: >-
+      Open Government Licence - Canada. Verbatim: "The Information Provider grants you
+      a worldwide, royalty-free, perpetual, non-exclusive licence to use the
+      Information, including for commercial purposes, subject to the terms below." And
+      on breach: "If you fail to comply with any of them, the rights granted to you
+      under this licence, or any similar licence granted by the Information Provider,
+      will end automatically."
+    minimumTerm: none
+    exclusivity: none
+    terminationNotice: not applicable — no agreement is entered into
+    revocation: >-
+      The licence terminates automatically on breach of its attribution and
+      no-endorsement conditions. There is no account to close and no key to revoke.
+    fees: none published for any API or dataset
+    note: >-
+      This is the opposite of the travel-sector norm. There is no full-content
+      agreement, no segment fee, no minimum volume, no exclusivity, and no notice
+      period, because there is no commercial relationship to have terms about.
+  accessGate:
+    value: self-serve
+    whatADeveloperMustSign: >-
+      Nothing. No registration, no API key, no OAuth client, no terms click-through,
+      no accreditation. All three endpoints were called anonymously from a clean
+      client and returned 200. The only obligation is the Open Government Licence's
+      attribution and no-endorsement conditions, which attach to use rather than to
+      access.
+    rateLimits: none published
+    authentication: none
+    note: >-
+      "Self-serve" here means genuinely unauthenticated, not "sign up and get a free
+      key". The exception is the Drone Management Portal, which is an authenticated
+      regulatory account service for drone registration and pilot certificates with no
+      public API.
+  distributionModel:
+    value: not-applicable
+    note: >-
+      Transport Canada does not distribute travel inventory and is not distributed
+      through any channel. It is a safety and security regulator. Airline economic
+      licensing, all-in air fare advertising under the Air Transportation Regulations,
+      and the Air Passenger Protection Regulations are administered by the Canadian
+      Transportation Agency (otc-cta.gc.ca), a separate federal body, and the
+      Competition Bureau handles advertising conduct. Transport Canada's Civil
+      Aviation landing page carries no passenger-rights, fare-advertising or ticketing
+      content.
+  ndcPosture:
+    value: not applicable — regulator, publishes no NDC surface and does not regulate
+      airline distribution
+    note: >-
+      Worth recording for the Canadian market seam: IATA, the body that authors the
+      NDC standard, is headquartered in Montreal, so the world's most consequential
+      airline distribution standards programme is domiciled in Transport Canada's
+      jurisdiction — and Transport Canada has no role in it whatsoever. NDC is an
+      industry standard set by a trade association, not a Canadian regulatory
+      instrument. No NDC reference appears anywhere on tc.canada.ca.
+  regulatoryCounterweight:
+    transportCanadaHolds:
+      - Aeronautics Act and the Canadian Aviation Regulations (CARs) — airworthiness,
+        air operator certificates, personnel licensing, aerodrome standards
+      - Canadian Civil Aircraft Register (CCARCS) — the register of record
+      - CADORS — mandatory civil aviation occurrence reporting
+      - Air Cargo Security program membership
+      - RPAS/drone registration and pilot certification
+      - Motor Vehicle Safety Act — defect investigations, recalls, National Safety Mark
+    transportCanadaDoesNotHold:
+      - Air carrier economic licensing (Canadian Transportation Agency)
+      - Air Passenger Protection Regulations, including denied boarding, delay and
+        baggage compensation (Canadian Transportation Agency)
+      - All-in air price advertising under the Air Transportation Regulations
+        (Canadian Transportation Agency)
+      - Air navigation services and aeronautical information publication (NAV CANADA,
+        a private non-share corporation)
+      - Accident investigation (Transportation Safety Board of Canada)
+    note: >-
+      The regulatory counterweight to the GDS/NDC distribution structure exists in
+      Canada, but it lives at the CTA, not here. Anyone modelling Canadian aviation
+      consumer disclosure must profile the Canadian Transportation Agency separately.
+sources:
+  - url: https://open.canada.ca/data/en/dataset/1ec92326-47ef-4110-b7ca-959fab03f96d
+    type: Documentation
+    note: Vehicle Recalls Database dataset record. Lists the JSON and XML API
+      endpoints and links the DOCX API Guide (EN and FR). Publisher Transport Canada,
+      licence Open Government Licence - Canada.
+  - url: https://open.canada.ca/data/en/dataset/3a1eb6ef-6054-4f9d-b1f6-c30322cd7abf
+    type: Documentation
+    note: Airports dataset record. Lists ESRI REST and WMS resources for EN and FR
+      plus SHP, FGDB and CSV bulk files.
+  - url: https://open.canada.ca/data/en/dataset/a348c1d1-2392-4595-b5e2-c6a244a7e87f
+    type: Documentation
+    note: CADORS dataset record. Five CSV extracts plus five metadata TXT files.
+  - url: https://open.canada.ca/data/en/organization/tc
+    type: Documentation
+    note: 49 Transport Canada datasets on the Open Government Portal.
+  - url: https://open.canada.ca/en/access-our-application-programming-interface-api
+    type: APIReference
+    note: CKAN Action API — GET only, JSON output, documented against CKAN 2.8.
+  - url: https://open.canada.ca/en/open-government-licence-canada
+    type: License
+    note: Grant of rights and automatic termination on breach, quoted above.
+  - url: https://tc.canada.ca/en/aviation
+    type: Documentation
+    note: Civil Aviation programme scope. No developer or API references.
+  - url: https://github.com/tc-ca
+    type: GitHubOrganization
+    note: 69 public repos, zero OpenAPI or Swagger files.
+actions:
+  openapiHarvested: false
+  openapiCount: 0
+  capabilityDocumentsHarvested: 3
+  capabilityPaths:
+    - capabilities/transport-canada-airports-wms-capabilities.xml
+    - capabilities/transport-canada-airports-arcgis-mapserver.json
+    - capabilities/transport-canada-vehicle-recalls-api-root.json
+  apisYmlUpdated: true
+  reason: >-
+    No OpenAPI, Swagger or AsyncAPI document is published by Transport Canada, so
+    openapi/ was deliberately omitted rather than populated with a derived spec. The
+    three machine-readable service descriptions that DO exist were fetched verbatim
+    on 2026-07-28, each returning HTTP 200, and stored under capabilities/ with their
+    source URLs recorded in probes above. All three parse.
