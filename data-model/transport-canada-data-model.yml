@@ -1,0 +1,195 @@
+generated: '2026-07-28'
+method: derived
+source: >-
+  Derived from the self-describing service roots harvested into capabilities/
+  (transport-canada-vehicle-recalls-api-root.json declares the tables and their
+  query parameters; transport-canada-airports-arcgis-mapserver.json declares the
+  layer) and from the field names observed in live responses recorded in
+  review.yml (2026-07-28). No OpenAPI exists, so there are no $ref links to
+  walk — the graph below is built from the interfaces' own metadata plus the
+  fields actually returned.
+description: >-
+  The entity graph behind Transport Canada's public data surface. Two API-backed
+  domains (vehicle recalls, airports) plus the bulk-file-only domains that hang
+  off the same identifiers (CADORS occurrences, Air Cargo Security membership,
+  the aircraft register). The graph is joined almost entirely on shared industry
+  identifiers — ICAO and IATA codes, aircraft registration marks — rather than
+  on vendor-opaque keys.
+notation: >-
+  relationships use has_one / has_many / belongs_to with the joining field name;
+  direction is from the entity that carries the reference.
+
+entities:
+  - name: Recall
+    domain: road-safety
+    surface: api
+    source: capabilities/transport-canada-vehicle-recalls-api-root.json
+    api: transport-canada:transport-canada-vehicle-recalls-database-api
+    key: RECALL_NUMBER_NUM (e.g. 2024001)
+    description: >-
+      A safety-related recall recorded by the Defect Investigations and Recalls
+      Division for a vehicle, tire or child restraint.
+    queryable_by:
+      - recall-number
+      - make-name
+      - manufacturer-name
+      - minimum-model-year
+      - maximum-model-year
+      - year-range
+      - model-name
+    note: >-
+      The seven parameter acronyms above are declared verbatim by the service
+      root, in English and French, and are repeated in the published API Guide
+      (DOCX, 2016-12-22). They are the complete public query surface. Values may
+      be OR-ed with a pipe and parameters AND-ed by chaining path segments.
+  - name: RecallCount
+    domain: road-safety
+    surface: api
+    source: >-
+      Vehicle Recall Database API Documentation (DOCX, 2016-12-22); verified
+      live 2026-07-28.
+    key: none — a projection, not a resource
+    description: >-
+      Appending /count to any recall query returns a single Result Count row
+      ({"Name":"Result Count","Value":{"Type":"System.Decimal","Literal":"1190"}}
+      for make-name/volkswagen) instead of the matching records.
+  - name: RecallSummary
+    domain: road-safety
+    surface: api
+    source: capabilities/transport-canada-vehicle-recalls-api-root.json
+    key: RECALL_NUMBER_NUM
+    description: Condensed view of a recall, addressable only by recall number.
+    queryable_by: [recall-number]
+  - name: Manufacturer
+    domain: road-safety
+    surface: derived
+    key: MANUFACTURER_NAME
+    description: >-
+      Not an addressable resource — a filter dimension on Recall. There is no
+      manufacturer endpoint and no manufacturer identifier beyond the name
+      string.
+  - name: MakeModel
+    domain: road-safety
+    surface: derived
+    key: MAKE_NAME + MODEL_NAME + MODEL_YEAR
+    description: >-
+      The vehicle a recall applies to. Also a filter dimension only; the API
+      exposes no vehicle catalogue.
+  - name: Airport
+    domain: aviation-infrastructure
+    surface: api
+    source: capabilities/transport-canada-airports-arcgis-mapserver.json
+    api: transport-canada:transport-canada-canadian-airports-arcgis-rest-api
+    key: TC_ID (internal) — redundant to ICAO / IATA on the same record
+    geometry: esriGeometryPoint (wkid 3978, NAD83 Canada Atlas Lambert)
+    description: >-
+      A Canadian airport served by a NAV CANADA control tower or flight service
+      station. Layer 0 of the MapServer; the same features are exposed through
+      the WMS as queryable layer "0".
+    fields:
+      - {name: TC_ID, role: internal-key}
+      - {name: IATA, role: shared-identifier, example: YXY}
+      - {name: ICAO_OACI, role: shared-identifier, example: CYXY}
+      - {name: AIRPORT, role: label}
+      - {name: TYPE, role: classification, values: [Control Tower, Flight Service Station]}
+      - {name: CITY, role: location}
+      - {name: PROVINCE, role: location}
+      - {name: LATTITUDE, role: geometry, note: spelled with the doubled T in the source data}
+      - {name: LONGITUDE, role: geometry}
+      - {name: OBJECTID, role: internal-key}
+  - name: CADORSOccurrence
+    domain: aviation-safety
+    surface: bulk-only
+    source: https://opendatatc.tc.canada.ca/CADORS_Occurrence_Information.csv
+    key: cadorsnumber (e.g. 2004C2314)
+    description: >-
+      A mandatory civil aviation occurrence report. No API — published as five
+      sibling CSV extracts (Occurrence Information, Occurrence Category,
+      Occurrence Event Information, Aircraft Information, Aircraft Event
+      Information) indexed on open.canada.ca.
+    fields:
+      - {name: cadorsnumber, role: key}
+      - {name: aerodromeid, role: shared-identifier, note: ICAO code, e.g. CYFB, CYGW, CYQB}
+      - {name: tsboccurrencenumber, role: foreign-identifier, note: cross-references the Transportation Safety Board of Canada}
+  - name: CADORSAircraft
+    domain: aviation-safety
+    surface: bulk-only
+    key: cadorsnumber + registration mark
+    description: >-
+      Aircraft involved in an occurrence. Canadian registration marks are stored
+      WITHOUT the C- prefix (GJZT = C-GJZT); foreign marks appear in full
+      (N6409H). Flight numbers carry the ICAO operator designator (JZA3601 =
+      Jazz Aviation).
+  - name: AircraftRegistration
+    domain: aviation-registry
+    surface: web-form-only
+    source: https://wwwapps.tc.gc.ca/saf-sec-sur/2/ccarcs-riacc/RchSimp.aspx
+    key: Canadian registration mark (C-Gxxx / C-Fxxx)
+    description: >-
+      The Canadian Civil Aircraft Register — the register of record. No API, no
+      bulk download, search results capped at 1000. The single largest
+      data-access gap in Transport Canada's estate.
+  - name: ACSMember
+    domain: aviation-security
+    surface: bulk-only
+    source: https://opendatatc.tc.canada.ca/TC_ACS_Members_List_EN.csv
+    description: A participant in the Air Cargo Security program.
+  - name: Dataset
+    domain: catalogue
+    surface: api
+    source: https://open.canada.ca/data/en/api/3/action/package_show
+    key: CKAN package id (UUID)
+    description: >-
+      The CKAN package record that wraps every Transport Canada publication.
+      Operated by Treasury Board Secretariat, not Transport Canada — but it is
+      the only queryable index over the 49 datasets.
+  - name: Organization
+    domain: catalogue
+    surface: api
+    key: AEAE485F-42DE-4D33-AFA3-F8A3A76FC663
+    description: >-
+      "Transport Canada | Transports Canada" as a CKAN organization,
+      package_count 49 (organization_show?id=tc, HTTP 200 on 2026-07-28).
+
+relationships:
+  - {from: Recall, to: RecallSummary, kind: has_one, via: recall-number}
+  - {from: Recall, to: Manufacturer, kind: belongs_to, via: manufacturer-name}
+  - {from: Recall, to: MakeModel, kind: has_many, via: make-name + model-name + model-year}
+  - {from: CADORSOccurrence, to: Airport, kind: belongs_to, via: aerodromeid -> ICAO_OACI}
+  - {from: CADORSOccurrence, to: CADORSAircraft, kind: has_many, via: cadorsnumber}
+  - {from: CADORSAircraft, to: AircraftRegistration, kind: belongs_to, via: registration mark (C- prefix stripped)}
+  - {from: Organization, to: Dataset, kind: has_many, via: owner_org}
+  - {from: Dataset, to: Recall, kind: has_many, via: dataset 1ec92326-47ef-4110-b7ca-959fab03f96d}
+  - {from: Dataset, to: Airport, kind: has_many, via: dataset 3a1eb6ef-6054-4f9d-b1f6-c30322cd7abf}
+  - {from: Dataset, to: CADORSOccurrence, kind: has_many, via: dataset a348c1d1-2392-4595-b5e2-c6a244a7e87f}
+
+join_keys:
+  note: >-
+    The whole graph is joinable on identifiers Transport Canada does not own,
+    which is the portability finding recorded in review.yml. There are no
+    vendor-opaque keys of consequence.
+  shared:
+    - {id: ICAO aerodrome code, used_by: [Airport.ICAO_OACI, CADORSOccurrence.aerodromeid]}
+    - {id: IATA airport code, used_by: [Airport.IATA]}
+    - {id: Aircraft registration mark, used_by: [CADORSAircraft, AircraftRegistration]}
+    - {id: ICAO operator designator, used_by: [CADORSAircraft flight numbers]}
+    - {id: TSB occurrence number, used_by: [CADORSOccurrence.tsboccurrencenumber], owner: Transportation Safety Board of Canada}
+  transport_canada_scoped:
+    - {id: cadorsnumber, note: TC-scoped but published and stable}
+    - {id: Recall number, note: e.g. 2024001; manufacturer recall number carried alongside as MANUFACTURER_RECALL_NO_TXT}
+    - {id: TC_ID, note: internal airport key, redundant to ICAO/IATA on the same record}
+
+gaps:
+  - >-
+    No entity in the aviation-registry domain is reachable programmatically.
+    AircraftRegistration is the register of record and has neither API nor bulk
+    export.
+  - >-
+    The recalls API exposes no vehicle, manufacturer or campaign entity — only
+    the recall itself, filterable by string dimensions.
+  - >-
+    The two API-backed domains (road safety, airport geography) do not join to
+    each other at all. They are separate publications that happen to share a
+    department.
+data_dictionaries:
+  - {entity: Recall, url: 'https://opendatatc.blob.core.windows.net/opendatatc/recalls_variables.txt'}

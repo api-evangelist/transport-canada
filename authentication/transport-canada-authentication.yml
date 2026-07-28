@@ -1,0 +1,66 @@
+generated: '2026-07-28'
+method: derived
+source: >-
+  Derived from the machine-readable service descriptors harvested into
+  capabilities/ and from the anonymous HTTP probes recorded in review.yml
+  (2026-07-28). Transport Canada publishes no OpenAPI, so there are no
+  securitySchemes to aggregate; this profile records the auth model that the
+  live endpoints actually enforce.
+docs: https://open.canada.ca/en/access-our-application-programming-interface-api
+summary:
+  types: [none]
+  api_key_in: []
+  oauth2_flows: []
+  note: >-
+    All three Transport Canada public interfaces are genuinely unauthenticated.
+    Every probe in review.yml was issued from a clean anonymous client and
+    returned HTTP 200. There is no API key, no OAuth client registration, no
+    signed request, and no click-through terms gate. "Self-serve" here means
+    no credential exists, not "register for a free key".
+schemes: []
+apis:
+  - aid: transport-canada:transport-canada-vehicle-recalls-database-api
+    baseURL: https://data.tc.gc.ca/v1.3/api/eng/vehicle-recall-database
+    authentication: none
+    evidence: >-
+      GET /v1.3/api/eng/vehicle-recall-database/recall/recall-number/2024001?format=json
+      returned 200 with a full record and no credential (review.yml probes).
+  - aid: transport-canada:transport-canada-canadian-airports-arcgis-rest-api
+    baseURL: >-
+      https://maps-cartes.services.geo.ca/server_serveur/rest/services/TC/canadian_airports_w_air_navigation_services_en/MapServer
+    authentication: none
+    evidence: >-
+      MapServer?f=json and layer 0 /query both returned 200 anonymously. The
+      ArcGIS service descriptor declares no token endpoint and no secured
+      capability (capabilities/transport-canada-airports-arcgis-mapserver.json).
+  - aid: transport-canada:transport-canada-canadian-airports-wms
+    baseURL: >-
+      https://maps-cartes.services.geo.ca/server_serveur/services/TC/canadian_airports_w_air_navigation_services_en/MapServer/WMSServer
+    authentication: none
+    evidence: >-
+      WMS_Capabilities 1.3.0 carries an empty <Fees/> element and an
+      <AccessConstraints> of "Open Government Licence - Canada" — the OGC
+      encoding of unrestricted access
+      (capabilities/transport-canada-airports-wms-capabilities.xml).
+authorization:
+  model: none
+  scopes: none
+  note: >-
+    There is no scope, role or permission surface. Access control is exercised
+    upstream of the API by deciding which datasets get published at all; the
+    published surface is fully open under the Open Government Licence - Canada.
+gated_surfaces:
+  - name: Drone Management Portal
+    url: https://tc.canada.ca/en/aviation/drone-safety/drone-management-portal
+    authentication: GCKey / Sign-In Partner account (interactive only)
+    note: >-
+      Regulatory account service for RPAS registration and pilot certificates.
+      Human sign-in only; no public API, no OAuth client registration, and no
+      documented machine interface.
+  - name: Canadian Civil Aircraft Register (CCARCS)
+    url: https://wwwapps.tc.gc.ca/saf-sec-sur/2/ccarcs-riacc/RchSimp.aspx
+    authentication: none
+    note: >-
+      Unauthenticated but non-programmatic — an ASP.NET search form capped at
+      1000 results with no API and no bulk download.
+license: https://open.canada.ca/en/open-government-licence-canada

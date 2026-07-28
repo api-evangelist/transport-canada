@@ -381,3 +381,95 @@ actions:
     three machine-readable service descriptions that DO exist were fetched verbatim
     on 2026-07-28, each returning HTTP 200, and stored under capabilities/ with their
     source URLs recorded in probes above. All three parse.
+enrichment:
+  - round: '2026-07-28'
+    pipeline: pipeline-enrich.md
+    contractDiscovery:
+      result: no machine-readable API contract published — confirmed a second time
+      probes:
+        - {url: 'https://data.tc.gc.ca/openapi.json', status: 404}
+        - {url: 'https://data.tc.gc.ca/openapi.yaml', status: 404}
+        - {url: 'https://data.tc.gc.ca/swagger.json', status: 404}
+        - {url: 'https://data.tc.gc.ca/api-docs', status: 404}
+        - {url: 'https://data.tc.gc.ca/docs', status: 404}
+        - {url: 'https://data.tc.gc.ca/v1.3/api/eng/vehicle-recall-database/openapi.json', status: 404}
+        - {url: 'https://tc.canada.ca/llms.txt', status: 404}
+        - {url: 'https://open.canada.ca/llms.txt', status: 404}
+      graphql: none — no /graphql surface on any Transport Canada host
+      mcp: >-
+        registry.modelcontextprotocol.io returned count 0 for "transport canada";
+        no first-party npm package. No hosted MCP server exists.
+      decision: >-
+        openapi/ deliberately left empty for a second round. No OpenAPI is
+        published, and deriving one from the API Guide would present an API
+        Evangelist artifact as a provider-published contract.
+    newFindings:
+      - >-
+        Transport Canada DOES publish written API documentation. The Vehicle
+        Recall Database API Documentation is a DOCX attached as a guide resource
+        to the CKAN dataset record, dated 22 December 2016. Round 1 missed it
+        because it is not linked from any web page. It documents the
+        pipe-delimited multiple-value form (make-name/audi|toyota), chained
+        parameters (make-name/dodge/year-range/1998-1999), the /count modifier,
+        and JSON as the default format. All four were re-verified live on
+        2026-07-28 and all still work against v1.3 — nine-year-old documentation
+        that is still accurate.
+      - >-
+        The /count operation was not previously recorded. GET
+        /recall/make-name/volkswagen/count?format=json returns
+        {"Name":"Result Count","Value":{"Type":"System.Decimal","Literal":"1190"}}.
+        It is the API's only query-sizing primitive.
+      - >-
+        data.tc.gc.ca serves an INCOMPLETE TLS certificate chain. The leaf
+        (O=Shared Services Canada, issued by Entrust OV TLS Issuing RSA CA 1) is
+        sent without the intermediate; openssl s_client returns verify error 21
+        and Python ssl fails outright, while macOS curl succeeds from a cached
+        intermediate. Transport Canada's only first-party API host fails TLS
+        verification from a clean client.
+      - >-
+        No /.well-known/ document exists on any host. www.canada.ca answers
+        /.well-known/security.txt with HTTP 200 and the Canada.ca 404 page — a
+        soft 404 that any status-code-only scanner will misreport as an RFC 9116
+        hit.
+      - >-
+        Publication cadence is now recorded from CKAN `frequency`: recalls P1M
+        (monthly), CADORS P1D (daily), airports as_needed with the record
+        untouched since 2021-05-19. The freshest thing Transport Canada
+        publishes — daily CADORS — has no API at all.
+      - >-
+        No first-party SDK exists on npm, PyPI, Maven, NuGet, pkg.go.dev,
+        RubyGems, Packagist or crates.io. The only first-party code that
+        consumes these APIs is github.com/tc-ca/alexa-gc-recalls, an
+        experimental Alexa skill last pushed 2022-12-30.
+      - >-
+        No DNSSEC and no CAA on canada.ca, gc.ca or geo.ca. DMARC is p=none on
+        both Government of Canada apex domains; the only enforcing policy
+        (geo.ca, p=reject) belongs to Natural Resources Canada.
+    artifactsAdded:
+      - authentication/transport-canada-authentication.yml
+      - conventions/transport-canada-conventions.yml
+      - conformance/transport-canada-conformance.yml
+      - errors/transport-canada-problem-types.yml
+      - lifecycle/transport-canada-lifecycle.yml
+      - data-model/transport-canada-data-model.yml
+      - packages/transport-canada-packages.yml
+      - well-known/transport-canada-well-known.yml
+      - security/transport-canada-domain-security.yml
+      - llms/transport-canada-llms.txt
+    artifactsSkipped:
+      openapi: not published
+      overlays: no OpenAPI to overlay
+      skills: no OpenAPI to ground operationIds in
+      mcp: no hosted server, and no OpenAPI to derive a tool list from
+      asyncapi: no event, streaming or webhook surface exists
+      scopes: no OAuth anywhere in the estate
+      sandbox: no test mode, test credentials or fixtures — the live API is open
+      cli: no first-party CLI
+      components: no embeddable UI components
+      changelog: no dated changelog is published for any interface
+      grpc: no .proto published
+      decline-codes: not a payments or authorization provider
+      vulnerability-disclosure: >-
+        probe-security-programs.py found no security.txt, no disclosure page and
+        no bug bounty on any host — no Security pointer emitted
+      trust-center: no trust centre and no published certifications

@@ -1,0 +1,86 @@
+generated: '2026-07-28'
+method: probed
+source: >-
+  Live fetches of the /.well-known/ discovery surface on every host that appears
+  in apis.yml (baseURL, humanURL, Website) plus the bulk and registry hosts,
+  2026-07-28. Status is the HTTP code observed at fetch time.
+finding: >-
+  Transport Canada publishes NO /.well-known/ documents at all. Every path on
+  every host returned 404. The one 200 in the set — www.canada.ca — is a soft
+  404: the Government of Canada web platform answers unknown paths with HTTP 200
+  and the "Not Found - Canada.ca" error page, canonicalised to
+  https://www.canada.ca/errors/404.html. It is recorded as present-but-not-a-
+  real-document and nothing was saved. No security.txt (RFC 9116), no
+  api-catalog (RFC 9727), no OIDC or OAuth metadata, no ai-plugin manifest.
+hosts:
+  - host: https://data.tc.gc.ca
+    role: Vehicle Recalls Database API host — the only first-party Transport Canada API host
+    documents:
+      - {path: /.well-known/security.txt, status: 404}
+      - {path: /.well-known/api-catalog, status: 404}
+      - {path: /.well-known/openid-configuration, status: 404}
+      - {path: /.well-known/oauth-authorization-server, status: 404}
+      - {path: /.well-known/ai-plugin.json, status: 404}
+  - host: https://tc.canada.ca
+    role: departmental website
+    documents:
+      - {path: /.well-known/security.txt, status: 404}
+      - {path: /.well-known/api-catalog, status: 404}
+      - {path: /.well-known/openid-configuration, status: 404}
+      - {path: /.well-known/oauth-authorization-server, status: 404}
+      - {path: /.well-known/ai-plugin.json, status: 404}
+      - {path: /llms.txt, status: 404}
+  - host: https://open.canada.ca
+    role: open data portal + CKAN Action API (Treasury Board Secretariat)
+    documents:
+      - {path: /.well-known/security.txt, status: 404}
+      - {path: /.well-known/api-catalog, status: 404}
+      - {path: /llms.txt, status: 404}
+  - host: https://maps-cartes.services.geo.ca
+    role: Canadian Airports ArcGIS REST + OGC WMS host (NRCan Federal Geospatial Platform)
+    documents:
+      - {path: /.well-known/security.txt, status: 404}
+      - {path: /.well-known/api-catalog, status: 404}
+  - host: https://opendatatc.tc.canada.ca
+    role: bulk CSV/XML distribution host
+    documents:
+      - {path: /.well-known/security.txt, status: 404}
+  - host: https://wwwapps.tc.gc.ca
+    role: CCARCS aircraft register + CADORS web search applications
+    documents:
+      - {path: /.well-known/security.txt, status: 404}
+  - host: https://www.canada.ca
+    role: Government of Canada web platform (parent of tc.canada.ca)
+    documents:
+      - path: /.well-known/security.txt
+        status: 200
+        type: text/html
+        saved: false
+        note: >-
+          Soft 404 — body is the "Not Found - Canada.ca" page with
+          rel=canonical https://www.canada.ca/errors/404.html. Not a real
+          security.txt. Any automated scan that trusts the status code alone
+          will misreport this as an RFC 9116 hit.
+spec_discovery:
+  note: >-
+    Contract-discovery probes run against the API host root as well as the docs
+    host, per the pipeline's "hunt harder" rule. All missed — this is now the
+    second independent round to conclude no machine-readable API contract is
+    published.
+  probes:
+    - {url: 'https://data.tc.gc.ca/openapi.json', status: 404}
+    - {url: 'https://data.tc.gc.ca/openapi.yaml', status: 404}
+    - {url: 'https://data.tc.gc.ca/swagger.json', status: 404}
+    - {url: 'https://data.tc.gc.ca/api-docs', status: 404}
+    - {url: 'https://data.tc.gc.ca/docs', status: 404}
+    - {url: 'https://data.tc.gc.ca/v1.3/api/eng/vehicle-recall-database/openapi.json', status: 404}
+  graphql: none — no /graphql surface on any Transport Canada host
+  mcp: >-
+    No hosted MCP server. registry.modelcontextprotocol.io returned count 0 for
+    "transport canada"; no first-party npm package exists.
+  what_exists_instead: >-
+    Three machine-readable service descriptions, all already harvested verbatim
+    into capabilities/ — the recalls API self-describing root, the ArcGIS
+    MapServer descriptor, and the OGC WMS 1.3.0 capabilities document — plus a
+    written API Guide published as a DOCX attachment on the CKAN dataset record.
+documents_saved: []

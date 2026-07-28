@@ -1,0 +1,129 @@
+generated: '2026-07-28'
+method: derived
+source: >-
+  Derived from the harvested service descriptors in capabilities/ and the live
+  probes recorded in review.yml (2026-07-28). Transport Canada publishes no
+  versioning policy, no deprecation policy, no SLA and no status page for its
+  public data interfaces; the absences below are recorded findings, not gaps
+  left unchecked.
+versioning:
+  scheme: mixed
+  note: >-
+    There is no departmental API versioning policy. Each of the three interfaces
+    inherits its versioning from whatever technology serves it.
+  interfaces:
+    - name: Vehicle Recalls Database API
+      scheme: uri-path
+      current: v1.3
+      mechanism: First path segment — https://data.tc.gc.ca/v1.3/api/{lang}/{application}
+      note: >-
+        v1.3 is the only version observed live. No v1.0-v1.2 tree responded and
+        no version negotiation header exists. Whether older versions were ever
+        public is not published.
+    - name: Canadian Airports ArcGIS REST MapServer
+      scheme: platform-version
+      current: '10.81'
+      mechanism: currentVersion field in the service descriptor
+      note: >-
+        This is the ArcGIS Server release, not a Transport Canada contract
+        version. Upgrading the platform changes the interface without any
+        Transport Canada version signal.
+    - name: Canadian Airports OGC WMS
+      scheme: standard-version
+      current: 1.3.0
+      mechanism: VERSION query parameter (OGC convention)
+      note: >-
+        Stability here comes from the OGC standard rather than from a Transport
+        Canada commitment — the strongest lifecycle guarantee in the estate, and
+        it is borrowed.
+deprecation:
+  policy_url: null
+  sunset_header: false
+  note: >-
+    No deprecation or sunset policy is published, and no Deprecation or Sunset
+    response header (RFC 8594) is emitted by any endpoint. There is no advance-
+    notice commitment of any kind. No Deprecation pointer is emitted in apis.yml
+    because there is genuinely nothing to point at.
+sla:
+  url: null
+  uptime_target: null
+  note: >-
+    No service level agreement, uptime target or availability commitment is
+    published for data.tc.gc.ca, maps-cartes.services.geo.ca or
+    opendatatc.tc.canada.ca. There is no commercial relationship for an SLA to
+    attach to.
+status_page: null
+status_note: >-
+  No status page was found for any Transport Canada API host. tc.canada.ca,
+  data.tc.gc.ca and the Government of Canada geospatial platform publish no
+  incident or availability feed. No StatusPage pointer is emitted.
+support:
+  note: >-
+    There is no developer support channel. The only published contact tied to
+    the machine-readable surface is the geospatial platform address carried in
+    the WMS capabilities document.
+  contacts:
+    - email: fgp-pgf@nrcan-rncan.gc.ca
+      phone: 1 (800) 661 2638
+      organisation: Government of Canada; Natural Resources Canada (Federal Geospatial Platform)
+      scope: Airports WMS / ArcGIS layer only — this is NRCan's platform, not Transport Canada's.
+      source: capabilities/transport-canada-airports-wms-capabilities.xml
+data_currency:
+  source: >-
+    CKAN package_show on open.canada.ca, 2026-07-28 — the `frequency` field is
+    an ISO 8601 repeating-interval code and is the only publication cadence
+    Transport Canada commits to anywhere.
+  datasets:
+  - dataset: Vehicle Recalls Database
+    ckan_id: 1ec92326-47ef-4110-b7ca-959fab03f96d
+    frequency: P1M (monthly)
+    date_published: '2012-08-26'
+    metadata_modified: '2024-11-20'
+    note: >-
+      Corroborated by the bulk filenames vrdb_full_monthly.csv /
+      vrdb_full_monthly.xml. The live API is not documented as having a
+      different currency to the monthly extract.
+  - dataset: Civil Aviation Daily Occurrence Report System (CADORS)
+    ckan_id: a348c1d1-2392-4595-b5e2-c6a244a7e87f
+    frequency: P1D (daily)
+    date_published: '2016-10-28'
+    metadata_modified: '2026-05-21'
+    note: >-
+      The freshest thing Transport Canada publishes — daily — and it has no API
+      at all. Five CSV extracts plus five metadata TXT files.
+  - dataset: Airports (Canadian Airports with Air Navigation Services)
+    ckan_id: 3a1eb6ef-6054-4f9d-b1f6-c30322cd7abf
+    frequency: as_needed
+    date_published: '2015-01-01'
+    metadata_modified: '2021-05-19'
+    note: >-
+      No committed cadence, and the record has not been touched since May 2021.
+      Both the ArcGIS REST and WMS interfaces serve this layer.
+documentation_currency:
+  - artifact: Vehicle Recall Database API Documentation (DOCX)
+    dated: '2016-12-22'
+    note: >-
+      Nine years old and still accurate — every behaviour it documents was
+      re-verified live against v1.3 on 2026-07-28. Stability by neglect rather
+      than by policy, but stability nonetheless.
+deprecated_operations: []
+retired_surfaces:
+  - name: Government of Canada API Store
+    url: https://api.canada.ca
+    status: gone
+    evidence: >-
+      DNS does not resolve (review.yml probes, 2026-07-28). It is still
+      referenced by the tc-ca GitHub repo "API-Store-Policy-Scripts", which is
+      now the only trace of a whole-of-government API storefront that Transport
+      Canada was wired into.
+  - name: CCARCS bulk download
+    url: https://wwwapps.tc.gc.ca/Saf-Sec-Sur/2/CCARCS-RIACC/CCARCSDownload.aspx
+    status: broken
+    evidence: >-
+      Returns HTTP 200 with a "page has either moved or does not exist" body.
+      A download surface that once existed and now silently fails — the clearest
+      example of what the absent deprecation policy costs consumers.
+cross_links:
+  changelog: null
+  conventions: conventions/transport-canada-conventions.yml
+  conformance: conformance/transport-canada-conformance.yml

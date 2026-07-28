@@ -1,0 +1,60 @@
+generated: '2026-07-28'
+method: searched
+source: >-
+  Registry searches on 2026-07-28 against npm (registry.npmjs.org search),
+  PyPI (pypi.org/pypi/<name>/json), and the github.com/tc-ca organisation
+  listing (69 public repos enumerated via the GitHub API).
+finding: >-
+  Transport Canada publishes NO client libraries. There is no first-party SDK
+  on npm, PyPI, Maven Central, NuGet, pkg.go.dev, RubyGems, Packagist or
+  crates.io for the Vehicle Recalls Database API, and none is needed for the
+  airports layer — the ArcGIS REST and OGC WMS interfaces are consumed with
+  existing third-party clients (Esri JS API, GDAL/OGR, OWSLib, QGIS), which is
+  the practical benefit of publishing to a standard rather than a bespoke shape.
+packages: []
+official_sdks: 0
+searches:
+  - {registry: npm, query: 'transport-canada', result: no first-party match}
+  - {registry: npm, query: 'vehicle-recall', result: no first-party match}
+  - {registry: npm, query: 'cadors', result: 0 results}
+  - {registry: npm, query: 'tc.gc.ca', result: 0 results}
+  - {registry: pypi, query: 'transport-canada', result: 404}
+  - {registry: pypi, query: 'vrdb', result: 404}
+  - {registry: pypi, query: 'cadors', result: 404}
+first_party_reference_implementations:
+  note: >-
+    Not client libraries and not installable from any registry, but genuinely
+    first-party code that consumes these APIs. Recorded because they are the
+    only worked examples Transport Canada has ever published — and because the
+    Alexa skill is, as far as this review can tell, the department's single
+    public demonstration of its own API.
+  items:
+    - name: alexa-gc-recalls
+      url: https://github.com/tc-ca/alexa-gc-recalls
+      language: javascript
+      license: MIT
+      last_pushed: '2022-12-30'
+      archived: false
+      description: >-
+        "Vehicle Safety Recalls, an experimental Alexa Skill project" — an AWS
+        Lambda Alexa skill (lambda/custom/handlers/customIntents/
+        searchForVehicleRecallHandler.js and siblings) that queries the Vehicle
+        Recalls Database API by make, model and year. Bilingual (i18n
+        directory). Consumer, not SDK.
+      official: true
+    - name: alexa-gc-recalls-training-data
+      url: https://github.com/tc-ca/alexa-gc-recalls-training-data
+      description: Utterance training data for the skill above.
+      official: true
+third_party:
+  searched: true
+  found: []
+  note: >-
+    No maintained third-party wrapper was found on any registry. Consumers of
+    the recalls API build the path-segment URL directly — which the API Guide
+    documents and which needs no library.
+consumption_without_sdk:
+  - {interface: Vehicle Recalls Database API, client: any HTTP client, note: 'Plain GET; URL-building is the whole integration.'}
+  - {interface: Canadian Airports ArcGIS REST, client: 'Esri ArcGIS API for JavaScript / Python, GDAL/OGR (ESRIJSON driver), arcgis2geojson', note: 'De facto interface with a large existing client ecosystem.'}
+  - {interface: Canadian Airports OGC WMS, client: 'OWSLib, GDAL/OGR (WMS driver), QGIS, MapServer, Leaflet/OpenLayers WMS layers', note: 'The payoff of implementing an actual open standard.'}
+  - {interface: open.canada.ca CKAN Action API, client: 'ckanapi (PyPI), any HTTP client', note: 'Third-party CKAN clients work, but they are clients of Treasury Board Secretariat''s portal, not of Transport Canada.'}

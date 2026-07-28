@@ -1,0 +1,229 @@
+generated: '2026-07-28'
+method: searched
+source: >-
+  The Vehicle Recall Database API Documentation (DOCX, dated 22 December 2016)
+  attached as a "guide" resource to the open.canada.ca dataset record —
+  https://open.canada.ca/data/dataset/1ec92326-47ef-4110-b7ca-959fab03f96d/resource/651cd076-d18c-49af-bd35-bfc89377e5cf/download/vehicle-recall-database-api-documentation.docx
+  (French sibling: .../a9e168d8-919c-4a4b-a9b8-11b10dddae9d/download/vehicle-recall-database-api-documentation-french.docx).
+  Every behaviour it documents was re-verified live on 2026-07-28. Supplemented
+  by the three harvested service descriptors in capabilities/ and the probes in
+  review.yml.
+finding: >-
+  Transport Canada DOES publish written API documentation — it is just buried as
+  a Word document inside a CKAN dataset record rather than on a developer
+  portal, which is why round 1 recorded the surface as undocumented. The guide
+  is nine years old (2016) and still accurate: every documented behaviour
+  (pipe-delimited multi-values, chained parameters, the /count operation, JSON
+  as the default format) was confirmed working against v1.3 today.
+description: >-
+  How Transport Canada's three public machine-readable interfaces behave. There
+  is no single API platform here — a bespoke .NET path-segment query API for
+  vehicle recalls, an Esri ArcGIS REST MapServer for airports, and an OGC WMS
+  1.3.0 service over the same layer. Each carries its own conventions, so this
+  document is organised per interface rather than per platform.
+
+authentication:
+  scheme: none
+  detail: authentication/transport-canada-authentication.yml
+  note: No key, no account, no OAuth client, no click-through. All endpoints answer anonymously.
+
+idempotency:
+  supported: false
+  note: >-
+    No idempotency-key mechanism exists and none is needed — every published
+    interface is read-only. The recalls API, the ArcGIS MapServer and the WMS
+    service expose GET only; there is no write surface anywhere in Transport
+    Canada's public API estate, so all operations are inherently idempotent in
+    the HTTP sense.
+
+interfaces:
+  - name: Vehicle Recalls Database API
+    style: >-
+      Bespoke REST-ish over HTTPS. Query values are carried as PATH SEGMENTS,
+      not query-string parameters — /{table}/{parameter-acronym}/{value}.
+    base_url: https://data.tc.gc.ca/v1.3/api/eng/vehicle-recall-database
+    self_description:
+      supported: true
+      mechanism: >-
+        GET the application root (or any table root) and the service returns its
+        own Tables[] and Parameters[] with bilingual names and acronyms.
+      artifact: capabilities/transport-canada-vehicle-recalls-api-root.json
+      note: >-
+        This is the closest thing Transport Canada has to a machine-readable
+        contract. It enumerates the tables (recall, recall-summary) and the
+        parameters each accepts, in English and French, but carries no types
+        beyond a numeric Type enum, no response schema and no examples.
+    documentation:
+      url: >-
+        https://open.canada.ca/data/dataset/1ec92326-47ef-4110-b7ca-959fab03f96d/resource/651cd076-d18c-49af-bd35-bfc89377e5cf/download/vehicle-recall-database-api-documentation.docx
+      format: DOCX
+      dated: '2016-12-22'
+      language: [en, fr]
+      note: >-
+        The only written API documentation Transport Canada publishes. It is a
+        CKAN "guide" resource, not a web page — there is no HTML rendering and
+        no developer portal entry.
+    query_composition:
+      path_template: /v1.3/api/{lang}/vehicle-recall-database/{table}/{parameter}/{value}[/{parameter}/{value}...][/count]
+      multiple_values:
+        separator: '|'
+        example: /recall/make-name/audi%7Ctoyota?format=json
+        verified: 'HTTP 200, 11,944 bytes (2026-07-28)'
+        note: Pipe-delimited OR within a single parameter, documented in the API Guide.
+      multiple_parameters:
+        separator: '/'
+        example: /recall/make-name/dodge/year-range/1998-1999?format=json
+        verified: 'HTTP 200, 12,122 bytes (2026-07-28)'
+        note: Parameters chain as further path-segment pairs and AND together.
+      count_modifier:
+        suffix: /count
+        example: /recall/make-name/volkswagen/count?format=json
+        verified: 'HTTP 200 — {"ResultSet":[[{"Name":"Result Count","Value":{"Type":"System.Decimal","Literal":"1190"}}]]} (2026-07-28)'
+        note: >-
+          Appending /count to any recall query returns the match count instead
+          of the records. This is the closest thing the API has to a pagination
+          or sizing primitive.
+      operations:
+        - {table: recall, form: search, description: Recall records matching the supplied parameters.}
+        - {table: recall, form: count, description: Count of matching recall records.}
+        - {table: recall-summary, form: search, description: Summary of one recall, addressable by recall-number only.}
+    content_negotiation:
+      mechanism: format query parameter
+      values: [json, xml]
+      default: json
+      note: >-
+        Format is selected with ?format=json or ?format=xml, not with an Accept
+        header. The API Guide states JSON is used by default when the format
+        parameter is absent or invalid — verified live: omitting format entirely
+        returns JSON.
+    localisation:
+      mechanism: language path segment
+      values: [eng, fra]
+      note: >-
+        /v1.3/api/eng/... and /v1.3/api/fra/... are mirrored service trees. The
+        language segment changes both the parameter acronyms (make-name vs
+        nom-de-la-marque) and the returned labels. Confirmed live for the recall
+        table.
+    response_envelope:
+      shape: 'ResultSet[[{Name, Value:{Type, Literal}}]]'
+      note: >-
+        Records come back as arrays of name/value pairs where each Value carries
+        a .NET runtime type name (e.g. "System.String") alongside the literal.
+        The serialisation leaks the implementation stack into the payload and is
+        not a recognised hypermedia or envelope standard.
+    pagination:
+      style: none
+      sizing_primitive: /count
+      note: >-
+        No limit, offset, cursor or page parameter exists — neither the
+        self-describing root nor the API Guide documents one. Result sets are
+        returned whole for the parameters supplied; breadth is controlled by
+        narrowing the query (make, manufacturer, model, year range) and the
+        /count modifier lets a client size a query before issuing it.
+    versioning:
+      scheme: uri-path
+      current: v1.3
+      note: The version is the first path segment. No version header, no date-based versioning.
+    errors:
+      detail: errors/transport-canada-problem-types.yml
+      note: >-
+        Plain JSON {"Message": "..."} on a malformed request; no RFC 9457
+        problem+json, no error code registry.
+
+  - name: Canadian Airports ArcGIS REST MapServer
+    style: Esri ArcGIS REST Services 10.81 (de facto industry interface)
+    base_url: >-
+      https://maps-cartes.services.geo.ca/server_serveur/rest/services/TC/canadian_airports_w_air_navigation_services_en/MapServer
+    capabilities: [Map, Data, Query]
+    content_negotiation:
+      mechanism: f query parameter
+      values: [json, geoJSON, html, pjson]
+      evidence: supportedQueryFormats "JSON, geoJSON" in the service descriptor.
+    pagination:
+      style: transfer-limit + result offset
+      max_record_count: 1000
+      response_fields:
+        exceededTransferLimit: >-
+          Returned true when the query matched more features than
+          maxRecordCount; page with resultOffset / resultRecordCount.
+      note: >-
+        maxRecordCount 1000 is declared in the service descriptor. A full
+        extract is reachable with where=1%3D1&outFields=*&f=json plus offset
+        paging, or by taking the CSV/SHP/FGDB bulk files.
+    spatial_reference:
+      wkid: 3978
+      name: NAD83 Canada Atlas Lambert
+      note: >-
+        Requests may specify outSR to reproject; the WMS sibling additionally
+        advertises CRS:84 and EPSG:4326.
+    localisation:
+      mechanism: service-name suffix
+      values: [_en, _fr]
+      note: The French service tree is a separate MapServer path, not a parameter.
+    versioning:
+      scheme: platform-version
+      current: '10.81'
+      note: >-
+        currentVersion in the service descriptor is the ArcGIS Server release,
+        not a Transport Canada API version. There is no independent contract
+        version for this layer.
+
+  - name: Canadian Airports OGC WMS
+    style: OGC Web Map Service 1.3.0
+    base_url: >-
+      https://maps-cartes.services.geo.ca/server_serveur/services/TC/canadian_airports_w_air_navigation_services_en/MapServer/WMSServer
+    operations: [GetCapabilities, GetMap, GetFeatureInfo, GetLegendGraphic, GetStyles]
+    content_negotiation:
+      mechanism: FORMAT / INFO_FORMAT query parameters
+      getmap_formats: [image/png, image/png8, image/png24, image/png32, image/jpeg, image/gif, image/tiff, image/bmp, image/svg+xml]
+      getfeatureinfo_formats: [application/geojson, text/xml, text/html, text/plain, application/vnd.ogc.wms_xml]
+    crs: [CRS:84, EPSG:4326, EPSG:3978]
+    limits:
+      max_width: 4096
+      max_height: 4096
+    errors:
+      mechanism: OGC ServiceExceptionReport
+      formats: [application/vnd.ogc.se_xml, application/vnd.ogc.se_inimage, application/vnd.ogc.se_blank, text/xml, XML]
+    versioning:
+      scheme: standard-version
+      current: 1.3.0
+      mechanism: VERSION query parameter (OGC convention)
+
+request_tracing:
+  request_id_header: null
+  note: >-
+    No correlation or request-id header is returned by any of the three
+    interfaces. There is no support channel keyed to a request identifier.
+
+rate_limits:
+  published: false
+  signal_status: null
+  detail: null
+  note: >-
+    No rate limit is published for any endpoint and no 429 was observed during
+    probing. The absence is recorded as fact, not inferred as unlimited.
+
+bulk_alternative:
+  note: >-
+    Transport Canada's dominant distribution convention is not the API at all —
+    it is bulk CSV/XML on opendatatc.tc.canada.ca, indexed through the
+    Treasury-Board-operated CKAN Action API on open.canada.ca. For CADORS, the
+    vessel registers, the Air Cargo Security members list and the National
+    Collision Database there is no API and the bulk file IS the interface.
+  ckan_api: https://open.canada.ca/data/en/api/3/action/package_search?q=owner_org:AEAE485F-42DE-4D33-AFA3-F8A3A76FC663
+  bulk_host: https://opendatatc.tc.canada.ca/
+
+licensing:
+  license: Open Government Licence - Canada
+  url: https://open.canada.ca/en/open-government-licence-canada
+  obligations: >-
+    Attribution of the Information Provider and no assertion of endorsement.
+    Rights terminate automatically on breach. No fees, no minimum term, no
+    exclusivity.
+
+cross_links:
+  authentication: authentication/transport-canada-authentication.yml
+  errors: errors/transport-canada-problem-types.yml
+  lifecycle: lifecycle/transport-canada-lifecycle.yml
+  conformance: conformance/transport-canada-conformance.yml
+  data_model: data-model/transport-canada-data-model.yml

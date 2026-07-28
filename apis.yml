@@ -61,6 +61,17 @@ apis:
     url: https://data.tc.gc.ca/v1.3/api/eng/vehicle-recall-database/?format=json
   - type: ServiceDescriptor
     url: capabilities/transport-canada-vehicle-recalls-api-root.json
+  - type: Documentation
+    url: https://open.canada.ca/data/dataset/1ec92326-47ef-4110-b7ca-959fab03f96d/resource/651cd076-d18c-49af-bd35-bfc89377e5cf/download/vehicle-recall-database-api-documentation.docx
+    name: Vehicle Recall Database API Documentation (DOCX)
+    description: The only written API documentation Transport Canada publishes — a
+      Word document attached as a guide resource to the CKAN dataset record, dated
+      22 December 2016. Documents the path-segment query form, pipe-delimited multiple
+      values, chained parameters, the /count modifier and the json/xml format parameter.
+      Every behaviour it describes was re-verified live on 2026-07-28. A French version
+      is published alongside it.
+  - type: Conventions
+    url: conventions/transport-canada-conventions.yml
   - type: BulkDownload
     url: https://opendatatc.tc.canada.ca/vrdb_full_monthly.csv
   - type: BulkDownload
@@ -121,6 +132,30 @@ apis:
   - type: License
     url: https://open.canada.ca/en/open-government-licence-canada
 common:
+- type: DomainSecurity
+  url: security/transport-canada-domain-security.yml
+- type: Authentication
+  url: authentication/transport-canada-authentication.yml
+  description: Auth profile for all three public interfaces — verified anonymous,
+    no key, no OAuth, no scopes.
+- type: Conventions
+  url: conventions/transport-canada-conventions.yml
+- type: ErrorCatalog
+  url: errors/transport-canada-problem-types.yml
+- type: Lifecycle
+  url: lifecycle/transport-canada-lifecycle.yml
+- type: Conformance
+  url: conformance/transport-canada-conformance.yml
+- type: DataModel
+  url: data-model/transport-canada-data-model.yml
+- type: Packages
+  url: packages/transport-canada-packages.yml
+  description: No first-party SDKs exist on any registry; the artifact records the
+    registry searches and how to consume each interface without one.
+- type: WellKnown
+  url: well-known/transport-canada-well-known.yml
+- type: LLMsTxt
+  url: llms/transport-canada-llms.txt
 - type: Website
   url: https://tc.canada.ca/en
 - type: Documentation
@@ -133,6 +168,21 @@ common:
   url: https://open.canada.ca/en/open-government-licence-canada
 - type: TermsOfService
   url: https://www.canada.ca/en/transparency/terms.html
+- type: PrivacyPolicy
+  url: https://www.canada.ca/en/transparency/privacy.html
+- type: Support
+  url: https://tc.canada.ca/en/corporate-services/contact-transport-canada
+  name: Contact Transport Canada
+  description: General departmental contact routing. There is no developer or API
+    support channel; the only technical contact tied to a machine-readable surface
+    is fgp-pgf@nrcan-rncan.gc.ca in the airports WMS capabilities document, which
+    belongs to Natural Resources Canada.
+- type: News
+  url: https://www.canada.ca/en/transport-canada/news.html
+  name: Transport Canada newsroom
+- type: Regulations
+  url: https://tc.canada.ca/en/corporate-services/acts-regulations
+  name: Acts and Regulations
 - type: GitHubOrganization
   url: https://github.com/tc-ca
 - type: Registry

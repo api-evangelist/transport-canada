@@ -1,0 +1,117 @@
+generated: '2026-07-28'
+method: derived
+format: non-standard
+source: >-
+  Derived from live error responses recorded in review.yml (2026-07-28) and from
+  the OGC exception formats declared in
+  capabilities/transport-canada-airports-wms-capabilities.xml. Transport Canada
+  publishes no error reference page for any of its interfaces, so this catalogue
+  is built from observed behaviour only — nothing here is inferred from a
+  template.
+description: >-
+  Error semantics across Transport Canada's three public interfaces. There is no
+  shared error contract: the Vehicle Recalls Database API returns a bare
+  {"Message": ...} JSON object, the ArcGIS MapServer returns Esri's
+  {"error":{code,message,details}} envelope, and the WMS returns an OGC
+  ServiceExceptionReport. None of them use RFC 9457 application/problem+json.
+rfc9457: false
+
+envelopes:
+  - interface: Vehicle Recalls Database API
+    media_type: application/json
+    shape: '{ "Message": string }'
+    evidence: >-
+      GET /v1.3/api/eng/vehicle-recall-database/recall/make-name?format=json
+      returned 400 with {"Message":"The request is invalid."} — the ASP.NET Web
+      API default error body. No error code, no type URI, no field-level detail.
+  - interface: Canadian Airports ArcGIS REST MapServer
+    media_type: application/json
+    shape: '{ "error": { "code": integer, "message": string, "details": [string] } }'
+    evidence: >-
+      Esri ArcGIS REST Services 10.81 standard error envelope
+      (currentVersion 10.81 declared in
+      capabilities/transport-canada-airports-arcgis-mapserver.json). Note that
+      ArcGIS frequently returns HTTP 200 with an error object in the body rather
+      than a 4xx status — clients must inspect the payload, not just the status.
+  - interface: Canadian Airports OGC WMS
+    media_type: application/vnd.ogc.se_xml
+    shape: '<ServiceExceptionReport><ServiceException code="...">message</ServiceException></ServiceExceptionReport>'
+    alternate_formats: [application/vnd.ogc.se_inimage, application/vnd.ogc.se_blank, text/xml, XML]
+    evidence: >-
+      The <Exception> block of the harvested WMS_Capabilities 1.3.0 document
+      declares all five exception formats verbatim.
+
+problems:
+  - status: 400
+    interface: Vehicle Recalls Database API
+    title: The request is invalid.
+    meaning: >-
+      A parameter acronym was supplied as a path segment without its value
+      segment, or the path did not resolve to a table/parameter pair the
+      application recognises.
+    observed: >-
+      https://data.tc.gc.ca/v1.3/api/eng/vehicle-recall-database/recall/make-name?format=json
+    remediation: >-
+      Always supply the value segment — /recall/make-name/HONDA. GET the
+      application root to enumerate valid tables and parameter acronyms
+      (capabilities/transport-canada-vehicle-recalls-api-root.json).
+  - status: 404
+    interface: Vehicle Recalls Database API
+    title: The application requested does not exist
+    meaning: >-
+      The application segment of the path is not one this host serves.
+      vehicle-recall-database is the ONLY application on data.tc.gc.ca/v1.3.
+    observed: >-
+      https://data.tc.gc.ca/v1.3/api/eng/national-collision-database/?format=json
+    remediation: >-
+      Do not assume other Transport Canada datasets have an API on this host.
+      The National Collision Database, CADORS and the vessel registers are bulk
+      CSV/XML only — see conventions/transport-canada-conventions.yml
+      (bulk_alternative).
+  - status: 200
+    interface: Canadian Airports ArcGIS REST MapServer
+    title: Error object returned with a success status
+    meaning: >-
+      ArcGIS REST commonly answers a malformed query (bad where clause, unknown
+      outFields, invalid f) with HTTP 200 and an {"error": {...}} body.
+    remediation: >-
+      Treat the presence of an "error" key in the JSON body as failure
+      regardless of HTTP status.
+  - status: 200
+    interface: Canadian Airports ArcGIS REST MapServer
+    title: exceededTransferLimit
+    meaning: >-
+      Not an error, but the truncation signal that is most often mistaken for
+      one. The query matched more than maxRecordCount (1000) features and the
+      response is partial.
+    remediation: >-
+      Page with resultOffset / resultRecordCount, or take the bulk CSV/SHP/FGDB
+      extract from the open data portal.
+  - status: 200
+    interface: Canadian Airports OGC WMS
+    title: ServiceException
+    meaning: >-
+      WMS 1.3.0 returns exceptions in the body per the EXCEPTIONS parameter
+      (default application/vnd.ogc.se_xml). Common causes are an unknown LAYERS
+      value, an unsupported CRS, or WIDTH/HEIGHT above the declared 4096 maxima.
+    remediation: >-
+      Read the declared MaxWidth/MaxHeight (4096) and the CRS list (CRS:84,
+      EPSG:4326, EPSG:3978) from the capabilities document before composing a
+      GetMap request.
+  - status: 200
+    interface: Canadian Civil Aircraft Register (CCARCS)
+    title: Bulk download serves an error page under a 200 status
+    meaning: >-
+      https://wwwapps.tc.gc.ca/Saf-Sec-Sur/2/CCARCS-RIACC/CCARCSDownload.aspx
+      returns HTTP 200 but the body is the "page has either moved or does not
+      exist" error page. There is no CCARCS bulk download.
+    remediation: >-
+      Do not treat a 200 from wwwapps.tc.gc.ca as success — inspect the body.
+      There is no programmatic route to the Canadian Civil Aircraft Register;
+      this is the largest data-access gap in Transport Canada's estate.
+
+not_published:
+  - An error code registry or numbered error catalogue.
+  - Field-level validation detail on the recalls API 400.
+  - A support channel keyed to a request identifier (no request-id header exists).
+  - RFC 9457 problem+json on any interface.
