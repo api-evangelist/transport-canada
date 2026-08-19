@@ -35,7 +35,7 @@ tags:
 - Transportation
 created: '2026-07-28'
 modified: '2026-07-28'
-specificationVersion: '0.19'
+specificationVersion: '0.23'
 apis:
 - aid: transport-canada:transport-canada-vehicle-recalls-database-api
   name: Transport Canada Vehicle Recalls Database API
