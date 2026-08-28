@@ -20,6 +20,17 @@ description: >-
   CADORS, the Air Cargo Security members list and the vessel registers, all indexed
   through the Treasury-Board-operated open.canada.ca CKAN Action API under the Open
   Government Licence – Canada. No key, no account, no accreditation, no contract.
+deliveryModel:
+  model: saas
+  open_source: false
+  commercial: true
+  callable_host: false
+  label: Hosted service · you call their endpoint
+  confidence: medium
+  source:
+  - pricing
+  generated: '2026-08-28'
+  method: derived
 image: https://tc.canada.ca/favicon.ico
 tags:
 - Travel
