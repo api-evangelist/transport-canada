@@ -136,7 +136,7 @@ apis:
   properties:
   - type: Documentation
     url: https://open.canada.ca/data/en/dataset/3a1eb6ef-6054-4f9d-b1f6-c30322cd7abf
-  - type: WMSCapabilities
+  - type: GetCapabilities
     url: capabilities/transport-canada-airports-wms-capabilities.xml
   - type: Specification
     url: https://www.ogc.org/publications/standard/wms/
